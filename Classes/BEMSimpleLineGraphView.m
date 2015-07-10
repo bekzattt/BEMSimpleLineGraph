@@ -365,14 +365,14 @@ typedef NS_ENUM(NSInteger, BEMInternalTags)
                     prefix = [self.delegate popUpPrefixForlineGraph:self];
                 }
                 
-                NSString *fullString = [NSString stringWithFormat:@"%@%@%@", prefix, longestString, suffix];
+                NSString *fullString = [NSString stringWithFormat:@"%@%@%@\n01.07.2015", prefix, longestString, suffix];
                 
                 NSString *mString = [fullString stringByReplacingOccurrencesOfString:@"[0-9-]" withString:@"N" options:NSRegularExpressionSearch range:NSMakeRange(0, [longestString length])];
                 
-                self.popUpLabel = [[UILabel alloc] initWithFrame:CGRectMake(0, 0, 200, 20)];
+                self.popUpLabel = [[UILabel alloc] initWithFrame:CGRectMake(0, 0, 250, 40)];
                 self.popUpLabel.text = mString;
                 self.popUpLabel.textAlignment = 1;
-                self.popUpLabel.numberOfLines = 1;
+                self.popUpLabel.numberOfLines = 2;
                 self.popUpLabel.font = self.labelFont;
                 self.popUpLabel.backgroundColor = [UIColor clearColor];
                 [self.popUpLabel sizeToFit];
@@ -896,12 +896,12 @@ typedef NS_ENUM(NSInteger, BEMInternalTags)
     
     if (self.positionYAxisRight) {
         frameForBackgroundYAxis = CGRectMake(self.frame.size.width - self.YAxisLabelXOffset, 0, self.YAxisLabelXOffset, self.frame.size.height);
-        frameForLabelYAxis = CGRectMake(self.frame.size.width - self.YAxisLabelXOffset - 5, 0, self.YAxisLabelXOffset - 5, 15);
+        frameForLabelYAxis = CGRectMake(self.frame.size.width - self.YAxisLabelXOffset - 5, 0, self.YAxisLabelXOffset - 5, 3*15);
         xValueForCenterLabelYAxis = self.frame.size.width - self.YAxisLabelXOffset /2;
         textAlignmentForLabelYAxis = NSTextAlignmentRight;
     } else {
         frameForBackgroundYAxis = CGRectMake(0, 0, self.YAxisLabelXOffset, self.frame.size.height);
-        frameForLabelYAxis = CGRectMake(0, 0, self.YAxisLabelXOffset - 5, 15);
+        frameForLabelYAxis = CGRectMake(0, 0, self.YAxisLabelXOffset - 5, 3*15);
         xValueForCenterLabelYAxis = self.YAxisLabelXOffset/2;
         textAlignmentForLabelYAxis = NSTextAlignmentRight;
     }
@@ -966,13 +966,22 @@ typedef NS_ENUM(NSInteger, BEMInternalTags)
             CGFloat yAxisPosition = [self yPositionForDotValue:dotValue.floatValue];
             UILabel *labelYAxis = [[UILabel alloc] initWithFrame:frameForLabelYAxis];
             NSString *formattedValue = [NSString stringWithFormat:self.formatStringForValues, dotValue.doubleValue];
-            labelYAxis.text = [NSString stringWithFormat:@"%@%@%@", yAxisPrefix, formattedValue, yAxisSuffix];
-            labelYAxis.textAlignment = textAlignmentForLabelYAxis;
+
+            NSString *minMaxSuffix = @"";
+            if ([dotValue isEqualToNumber:minimumValue]) {
+                minMaxSuffix = @"\nMIN";
+            }else if ([dotValue isEqualToNumber:maximumValue]) {
+                minMaxSuffix = @"\nMAX";
+            }
+            
+            labelYAxis.text = [NSString stringWithFormat:@"%@%@%@", yAxisPrefix, formattedValue, minMaxSuffix];
+            labelYAxis.textAlignment = NSTextAlignmentCenter;
             labelYAxis.font = self.labelFont;
             labelYAxis.textColor = self.colorYaxisLabel;
             labelYAxis.backgroundColor = [UIColor clearColor];
             labelYAxis.tag = LabelYAxisTag2000;
             labelYAxis.center = CGPointMake(xValueForCenterLabelYAxis, yAxisPosition);
+            labelYAxis.numberOfLines = 2;
             [self addSubview:labelYAxis];
             [yAxisLabels addObject:labelYAxis];
             
@@ -1197,8 +1206,6 @@ typedef NS_ENUM(NSInteger, BEMInternalTags)
 
 - (NSNumber *)calculatePointValueAverage {
     NSArray *filteredArray = [self calculationDataPoints];
-    if (filteredArray.count == 0) return 0;
-    
     NSExpression *expression = [NSExpression expressionForFunction:@"average:" arguments:@[[NSExpression expressionForConstantValue:filteredArray]]];
     NSNumber *value = [expression expressionValueWithObject:nil context:nil];
     
@@ -1207,8 +1214,6 @@ typedef NS_ENUM(NSInteger, BEMInternalTags)
 
 - (NSNumber *)calculatePointValueSum {
     NSArray *filteredArray = [self calculationDataPoints];
-    if (filteredArray.count == 0) return 0;
-    
     NSExpression *expression = [NSExpression expressionForFunction:@"sum:" arguments:@[[NSExpression expressionForConstantValue:filteredArray]]];
     NSNumber *value = [expression expressionValueWithObject:nil context:nil];
     
@@ -1217,8 +1222,6 @@ typedef NS_ENUM(NSInteger, BEMInternalTags)
 
 - (NSNumber *)calculatePointValueMedian {
     NSArray *filteredArray = [self calculationDataPoints];
-    if (filteredArray.count == 0) return 0;
-    
     NSExpression *expression = [NSExpression expressionForFunction:@"median:" arguments:@[[NSExpression expressionForConstantValue:filteredArray]]];
     NSNumber *value = [expression expressionValueWithObject:nil context:nil];
     
@@ -1227,8 +1230,6 @@ typedef NS_ENUM(NSInteger, BEMInternalTags)
 
 - (NSNumber *)calculatePointValueMode {
     NSArray *filteredArray = [self calculationDataPoints];
-    if (filteredArray.count == 0) return 0;
-    
     NSExpression *expression = [NSExpression expressionForFunction:@"mode:" arguments:@[[NSExpression expressionForConstantValue:filteredArray]]];
     NSMutableArray *value = [expression expressionValueWithObject:nil context:nil];
     
@@ -1237,8 +1238,6 @@ typedef NS_ENUM(NSInteger, BEMInternalTags)
 
 - (NSNumber *)calculateLineGraphStandardDeviation {
     NSArray *filteredArray = [self calculationDataPoints];
-    if (filteredArray.count == 0) return 0;
-    
     NSExpression *expression = [NSExpression expressionForFunction:@"stddev:" arguments:@[[NSExpression expressionForConstantValue:filteredArray]]];
     NSNumber *value = [expression expressionValueWithObject:nil context:nil];
     
@@ -1246,18 +1245,16 @@ typedef NS_ENUM(NSInteger, BEMInternalTags)
 }
 
 - (NSNumber *)calculateMinimumPointValue {
-    NSArray *filteredArray = [self calculationDataPoints];
-    if (filteredArray.count == 0) return 0;
-    
-    NSExpression *expression = [NSExpression expressionForFunction:@"min:" arguments:@[[NSExpression expressionForConstantValue:filteredArray]]];
-    NSNumber *value = [expression expressionValueWithObject:nil context:nil];
-    return value;
+    if (dataPoints.count > 0) {
+        NSArray *filteredArray = [self calculationDataPoints];
+        NSExpression *expression = [NSExpression expressionForFunction:@"min:" arguments:@[[NSExpression expressionForConstantValue:filteredArray]]];
+        NSNumber *value = [expression expressionValueWithObject:nil context:nil];
+        return value;
+    } else return @0;
 }
 
 - (NSNumber *)calculateMaximumPointValue {
     NSArray *filteredArray = [self calculationDataPoints];
-    if (filteredArray.count == 0) return 0;
-    
     NSExpression *expression = [NSExpression expressionForFunction:@"max:" arguments:@[[NSExpression expressionForConstantValue:filteredArray]]];
     NSNumber *value = [expression expressionValueWithObject:nil context:nil];
     
@@ -1423,7 +1420,9 @@ typedef NS_ENUM(NSInteger, BEMInternalTags)
         }
         NSNumber *value = dataPoints[index];
         NSString *formattedValue = [NSString stringWithFormat:self.formatStringForValues, value.doubleValue];
-        self.popUpLabel.text = [NSString stringWithFormat:@"%@%@%@", prefix, formattedValue, suffix];
+        
+        NSString *dateString = [self.dataSource lineGraph:self labelOnXAxisForIndex:index];
+        self.popUpLabel.text = [NSString stringWithFormat:@"%@%@%@\n%@", prefix, formattedValue, suffix,dateString];
         self.popUpLabel.center = self.popUpView.center;
     }
 }
