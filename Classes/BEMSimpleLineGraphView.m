@@ -946,7 +946,7 @@ typedef NS_ENUM(NSInteger, BEMInternalTags)
                 return;
             }
             
-            while(yAxisPosition < maximumValue.floatValue + increment) {
+            while(yAxisPosition < maximumValue.doubleValue + increment) {
                 [dotValues addObject:@(yAxisPosition)];
                 yAxisPosition += increment;
             }
@@ -962,17 +962,37 @@ typedef NS_ENUM(NSInteger, BEMInternalTags)
             }
         }
         
+        [dotValues sortUsingComparator:^NSComparisonResult(id obj1, id obj2) {
+            return [obj1 compare:obj2];
+        }];
+
+        NSMutableArray *doubleValues = [NSMutableArray new];
+        for (NSNumber *dotValue in dotValues){
+            double doubleVal = [dotValue doubleValue];
+            [doubleValues addObject:@(doubleVal)];
+        }
+            
+        NSSet *set = [NSSet setWithArray:doubleValues];
+        
         for (NSNumber *dotValue in dotValues) {
             CGFloat yAxisPosition = [self yPositionForDotValue:dotValue.floatValue];
             UILabel *labelYAxis = [[UILabel alloc] initWithFrame:frameForLabelYAxis];
             NSString *formattedValue = [NSString stringWithFormat:self.formatStringForValues, dotValue.doubleValue];
-
+            //bekzat
             NSString *minMaxSuffix = @"";
-            if ([dotValue isEqualToNumber:minimumValue]) {
-                minMaxSuffix = @"\nMIN";
-            }else if ([dotValue isEqualToNumber:maximumValue]) {
+            
+            int i = (int) [dotValues indexOfObject:dotValue];
+            int n = (int) dotValues.count;
+        
+            
+            if (n == 1 || [set count] == 1) {
+                minMaxSuffix = @"";
+            }else if (i == n-1) {
                 minMaxSuffix = @"\nMAX";
+            }else if(i == 0){
+                minMaxSuffix = @"\nMIN";
             }
+
             
             labelYAxis.text = [NSString stringWithFormat:@"%@%@%@", yAxisPrefix, formattedValue, minMaxSuffix];
             labelYAxis.textAlignment = NSTextAlignmentCenter;
@@ -982,8 +1002,15 @@ typedef NS_ENUM(NSInteger, BEMInternalTags)
             labelYAxis.tag = LabelYAxisTag2000;
             labelYAxis.center = CGPointMake(xValueForCenterLabelYAxis, yAxisPosition);
             labelYAxis.numberOfLines = 2;
-            [self addSubview:labelYAxis];
-            [yAxisLabels addObject:labelYAxis];
+            
+            if (minMaxSuffix.length == 0) {
+
+            }else{
+                [self addSubview:labelYAxis];
+                [yAxisLabels addObject:labelYAxis];
+            }
+            
+
             
             NSNumber *yAxisLabelCoordinate = @(labelYAxis.center.y);
             [yAxisLabelPoints addObject:yAxisLabelCoordinate];
